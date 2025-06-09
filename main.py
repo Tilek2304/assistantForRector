@@ -15,12 +15,19 @@ import os
 import pygame # Для воспроизведения аудио
 import io # Для работы с аудио в памяти
 
+
+
+
 # --- Глобальные переменные ---
 is_true = False # Флаг для активации маха рукой
 num_faces = 0   # Количество обнаруженных лиц
 lock = threading.Lock() # Блокировка для управления доступом к общим переменным
 robot_name = "Бот" # Имя робота по умолчанию
 robot_developer = "Неизвестно" # Разработчик по умолчанию
+
+
+# --- Режимы ---
+testing = False
 
 # --- Инициализация Pygame Mixer для воспроизведения аудио ---
 pygame.mixer.init()
@@ -84,7 +91,9 @@ try:
 except Exception as e:
     print(f"FATAL ERROR: Не удалось подключиться к контроллеру сервоприводов. {e}")
     print("Пожалуйста, проверьте последовательный порт в config.ini и убедитесь, что Arduino подключен и запущен правильный скетч.")
-    exit() # Завершаем программу, если не удалось подключиться к серво
+    if not testing:
+
+        exit() # Завершаем программу, если не удалось подключиться к серво
 
 SERVO_X = 0  # канал для оси X
 SERVO_Y = 1  # канал для оси Y
@@ -169,7 +178,7 @@ def recognize_speech_from_mic(recognizer, microphone):
 def chating():
     global is_true
     global angle_h
-
+    global testing
     r = sr.Recognizer()
     # mic = sr.Microphone() # Используем микрофон по умолчанию
 
@@ -179,7 +188,10 @@ def chating():
     except Exception as e:
         print(f"FATAL ERROR: Не удалось найти микрофон по индексу {MICROPHONE_INDEX}: {e}")
         print("Пожалуйста, проверьте 'microphone_index' в config.ini или используйте sr.Microphone.list_microphone_names() для поиска.")
-        exit()
+        if not testing:
+            exit()
+        else:
+            pass
 
     with model.chat_session():
         running = True
@@ -292,6 +304,19 @@ def tracking():
 
 
 if __name__ == "__main__":
+    starttestingchat = 'testchat'
+    mess = input()
+    if mess == starttestingchat:
+        testing = True
+        print(f"--- Запуск в тест режиме {robot_name} ({description}) ---")
+        print(f"Разработчик: {robot_developer}, Дата создания: {creation_date}")
+        chating_thread = threading.Thread(target=chating)   
+        chating_thread.start()
+        chating_thread.join()
+        pygame.mixer.quit() # Выключаем pygame mixer
+        print("Тестирование завершенно.")
+        exit()
+
     print(f"--- Запуск {robot_name} ({description}) ---")
     print(f"Разработчик: {robot_developer}, Дата создания: {creation_date}")
 
