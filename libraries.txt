@@ -1,0 +1,5 @@
+pip install gpt4all
+pip install opencv-python numpy smbus
+pip install pyserial
+pip install SpeechRecognition gTTS pydub configparser
+pip install pygame
